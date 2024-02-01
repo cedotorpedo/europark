@@ -74,6 +74,13 @@ def show_wait_time():
         .agg(col('WAIT_TIME_MAX').mean().suffix('_mean'))
     ).sort('WAIT_TIME_MAX_mean').tail(6).to_numpy()
 
+    top_6_ride_names = [row[0] for row in reversed(top_6_rides)]
+
+    st.header("🎢 Top 6 Rides 🎢")
+    st.write("The top 6 rides based on average wait time are:")
+    for i, ride_name in enumerate(top_6_ride_names, start=1):
+        st.write(f"{i}. {ride_name}")
+    st.write("\n\n")
 
     all_rides = (
         wt
@@ -81,7 +88,7 @@ def show_wait_time():
         .agg(col('WAIT_TIME_MAX').mean().suffix('_mean'))
     ).sort('WAIT_TIME_MAX_mean').to_numpy()
 
-    ride_names = [row[0] for row in all_rides]  # Assuming the ride name is in the first column
+    ride_names = [row[0] for row in reversed(all_rides)]  # Reverse the list for descending order
 
     selected_ride = st.selectbox("Select Ride", ride_names)
 
