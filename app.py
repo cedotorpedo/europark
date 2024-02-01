@@ -21,7 +21,6 @@ def main():
 
 def show_attendance():
     # Load data and process it as before
-    # Load data and process it as before
     attendance = (
         pl.read_csv('data/attendance.csv').filter(col('FACILITY_NAME') == 'PortAventura World')
         .with_columns(col('USAGE_DATE').str.to_datetime("%Y-%m-%d"))
@@ -67,19 +66,20 @@ def show_wait_time():
     )
     )
 
-    # Rest of your code here
     top_6_rides = (
         wt
         .group_by(col('ENTITY_DESCRIPTION_SHORT'))
         .agg(col('WAIT_TIME_MAX').mean().suffix('_mean'))
-    ).sort('WAIT_TIME_MAX_mean').tail(6).to_numpy()
+    ).sort('WAIT_TIME_MAX_mean').tail(6)
 
-    top_6_ride_names = [row[0] for row in reversed(top_6_rides)]
+    top_6_ride_names = [(row[0], row[1]) for row in reversed(top_6_rides.to_numpy())]
 
     st.header("🎢 Top 6 Rides 🎢")
     st.write("The top 6 rides based on average wait time are:")
-    for i, ride_name in enumerate(top_6_ride_names, start=1):
-        st.write(f"{i}. {ride_name}")
+    for i, (ride_name, wait_time_mean) in enumerate(top_6_ride_names, start=1):
+        minutes = int(wait_time_mean)
+        seconds = int((wait_time_mean - minutes) * 60)
+        st.write(f"{i}. {ride_name} ({minutes} minutes {seconds} seconds)")
     st.write("\n\n")
 
     all_rides = (
@@ -90,7 +90,13 @@ def show_wait_time():
 
     ride_names = [row[0] for row in reversed(all_rides)]  # Reverse the list for descending order
 
-    selected_ride = st.selectbox("Select Ride", ride_names)
+    # selected_ride = st.selectbox("Select Ride", ride_names)
+    # Increase the font size of the "Select Ride" text
+    st.markdown("<h2>Select Ride</h2>", unsafe_allow_html=True)
+
+    # Create the selectbox
+    selected_ride = st.selectbox(" ", ride_names)  # Empty space for better alignment
+
 
     wt_filtered = (
         wt
@@ -100,7 +106,7 @@ def show_wait_time():
         .filter(col('RIDE_NAME').is_in([selected_ride]))
     ).sort(['weekday', 'hour_minute'], descending=[False, False]).to_pandas()
 
-    st.header("Average Wait Time Throughout the Day")
+    st.markdown("<h3>Average Wait Time Throughout the Day</h3>", unsafe_allow_html=True)
     
     # Create a plot for the average wait time throughout the day
     st.plotly_chart(
